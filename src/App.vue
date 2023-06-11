@@ -28,9 +28,9 @@ export default {
       varGroupId: "",
       // Array to hold all of the data we should render on the read table
       readVariables: [
-        { varName: "Var 1", dataType: "BOOL", value: true },
-        { varName: "Var 2", dataType: "INT", value: 8646 },
-        { varName: "Var 3", dataType: "REAL", value: 214.12 },
+        { varName: "Placeholder 1", dataType: "BOOL", value: true },
+        { varName: "Placeholder 2", dataType: "INT", value: 8646 },
+        { varName: "Placeholder 3", dataType: "REAL", value: 214.12 },
       ]
     }
   },
@@ -222,8 +222,12 @@ Vue functions to make it reactive and interact with variables from script -->
         <!-- v-for is like a foreach loop to render several of a component -->
         <!-- v-bind binds an HTML attribute (or component prop) to a variable
             from this one -->
-        <ReadTableRow v-for="v in readVariables" v-bind:var-name="v.path" v-bind:data-type="v.dataType"
-          v-bind:raw-value="v.value" />
+        <ReadTableRow
+          v-for="v in readVariables"
+          v-bind:var-name="v.path"
+          v-bind:data-type="v.dataType"
+          v-bind:raw-value="v.value"
+        />
       </tbody>
     </table>
     <button v-on:click="readGroup()">Update PLC Variables</button>
