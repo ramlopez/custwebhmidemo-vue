@@ -24,6 +24,8 @@ export default {
       authToken: "",
       accessToken: "",
 
+      // Variable group ID: we can register a list of variables to read easily
+      varGroupId: "",
       // Array to hold all of the data we should render on the read table
       readVariables: [
         { varName: "Var 1", dataType: "BOOL", value: true },
@@ -91,8 +93,77 @@ export default {
     // Perform both authentication steps in order
     async authenticate() {
       return this.reqAuthToken()
-        .then((rsp) => { this.reqAccessToken() })
-    }
+        .then((rsp) => { return this.reqAccessToken() })
+        // Also register variable group
+        .then((rsp) => { this.regGroup() })
+    },
+
+    // Register variable group (a list of variables we register to read easily
+    // several times by just using the group ID)
+    async regGroup() {
+      // Perform POST request to REST API with fetch (async promise)
+      return fetch("/_pxc_api/v1.8/groups", {
+        method: "POST",
+        // We provide access token in header because it requires auth
+        headers: { "Authorization": "Bearer " + this.accessToken },
+        body: JSON.stringify({
+          // We specify the list of variables for the group. We can read any
+          // variables that are HMI accessible
+          pathPrefix: "Arp.Plc.Eclr/",
+          paths: [
+            "xBool1",
+            "xBool2",
+            "xBool3",
+            "xBool4",
+            "iInt1",
+            "iInt2",
+            "iInt3",
+            "iInt4",
+            "rReal1",
+            "rReal2",
+            "rReal3",
+            "rReal4",
+          ]
+        })
+      })
+        // Turn response body to JSON (also an async promise)
+        .then((rsp) => { return rsp.json() })
+        // Take group id value and store it in component data
+        .then((data) => {
+          this.varGroupId = data.id;
+          return this.data;
+        })
+        // Catch errors, log to console
+        .catch((err) => {
+          this.accessToken = "";
+          console.error("Error requesting access token");
+          console.error(err);
+        })
+    },
+
+    // Read registered variables group
+    async readGroup() {
+      // Perform GET request to REST API with fetch (async promise)
+      return fetch("/_pxc_api/v1.8/groups/" + this.varGroupId, {
+        method: "GET",
+        // We provide access token in header because it requires auth
+        headers: { "Authorization": "Bearer " + this.accessToken },
+        // Using a group saves us having to list all of them again in request
+      })
+        // Turn response body to JSON (also an async promise)
+        .then((rsp) => { return rsp.json() })
+        // Take read variable data and store in component
+        .then((data) => {
+          this.readVariables = data.variables;
+          return this.data;
+        })
+        // Catch errors, log to console
+        .catch((err) => {
+          this.accessToken = "";
+          console.error("Error reading variable group");
+          console.error(err);
+        })
+    },
 
   }
 
@@ -123,7 +194,10 @@ Vue functions to make it reactive and interact with variables from script -->
       <input v-model="password" type="password" name="password" id="password">
       <button v-on:click="authenticate()">Log in</button>
       <p>Access token:
-      <pre>{{ accessToken }}</pre>
+        <pre>{{ accessToken }}</pre>
+      </p>
+      <p>Variable group ID:
+        <pre>{{ varGroupId }}</pre>
       </p>
     </div>
   </div>
@@ -131,9 +205,9 @@ Vue functions to make it reactive and interact with variables from script -->
   <div>
     <h2>Read PLC Variables</h2>
     <p>
-      Read only table showing variables read from the PLC. If we authenticate
-      succesfully we get an access token that we need to provide to the REST API
-      every time we read or write a variable to show we're authorised.
+      Read only table showing variables read from the PLC. For this we read
+      using a variable group that we register once when we log in, so we don't
+      have to re-specify the variable paths every single time we read.
     </p>
     <table>
       <thead>
@@ -148,10 +222,10 @@ Vue functions to make it reactive and interact with variables from script -->
         <!-- v-for is like a foreach loop to render several of a component -->
         <!-- v-bind binds an HTML attribute (or component prop) to a variable
             from this one -->
-        <ReadTableRow v-for="v in readVariables" v-bind:var-name="v.varName" v-bind:data-type="v.dataType"
+        <ReadTableRow v-for="v in readVariables" v-bind:var-name="v.path" v-bind:data-type="v.dataType"
           v-bind:raw-value="v.value" />
       </tbody>
     </table>
+    <button v-on:click="readGroup()">Update PLC Variables</button>
   </div>
-  <div></div>
 </template>
