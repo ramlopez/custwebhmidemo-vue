@@ -46,7 +46,6 @@ export default {
     groupVariables() {
       // map() is like a forEach loop, but it calls a function on every element
       return this.groupVariablesRegistration.map((reg, index) => {
-        console.log(reg);
         return {
           path: reg.path,
           type: reg.type,
