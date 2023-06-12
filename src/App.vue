@@ -50,7 +50,6 @@ export default {
     groupVariables() {
       // map() is like a forEach loop, but it calls a function on every element
       return this.groupVariablesRegistration.map((reg, index) => {
-        console.log(reg);
         return {
           path: reg.path,
           type: reg.type,
@@ -279,7 +278,7 @@ Vue functions to make it reactive and interact with variables from script -->
     <p>We need to log in before we can read or write PLC variables</p>
     <div>
       <!-- v-model makes a two-way binding between these input elements and
-                component variables. It combines v-bind + v-on essentially -->
+        component variables. It combines v-bind + v-on essentially -->
       <label for="username">Username:</label>
       <input v-model="username" type="text" name="username" id="username">
       <label for="password">Password:</label>
