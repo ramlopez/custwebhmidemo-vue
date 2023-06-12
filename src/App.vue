@@ -5,13 +5,14 @@
 
 // Import Vue components from other files
 import ReadTableRow from "./components/ReadTableRow.vue";
+import BoolCheckbox from "./components/BoolCheckbox.vue";
 
 // Most of the script code in a Vue component goes in export default
 export default {
 
   // List of imported components
   components: {
-    ReadTableRow
+    ReadTableRow, BoolCheckbox
   },
 
   // Data contains reactive variables for this component
@@ -33,7 +34,12 @@ export default {
         { path: "Placeholder 3", type: "REAL" },
       ],
       // Array to hold the actual read values from the group variables
-      groupVariablesValues: [ {value: true}, {value: 546}, {value: 87.15} ],
+      groupVariablesValues: [{ value: true }, { value: 546 }, { value: 87.15 }],
+
+      // Ints
+      iInt1: 0, iInt2: 0, iInt3: 0, iInt4: 0,
+      // Reals
+      rReal1: 0.0, rReal2: 0.0, rReal3: 0.0, rReal4: 0.0,
     }
   },
 
@@ -46,7 +52,6 @@ export default {
     groupVariables() {
       // map() is like a forEach loop, but it calls a function on every element
       return this.groupVariablesRegistration.map((reg, index) => {
-        console.log(reg);
         return {
           path: reg.path,
           type: reg.type,
@@ -188,6 +193,111 @@ export default {
         })
     },
 
+    // Handle boolean checkbox change, write variable to PLC API
+    async handleBoolCheckboxChange(eventPayload) {
+      // Perform PUT request to REST API with fetch (async promise)
+      return fetch("/_pxc_api/v1.8/variables", {
+        method: "PUT",
+        // We provide access token in header because it requires auth
+        headers: { "Authorization": "Bearer " + this.accessToken },
+        body: JSON.stringify({
+          pathPrefix: "Arp.Plc.Eclr/",
+          variables: [
+            {
+              path: eventPayload.variablePath,
+              value: eventPayload.value,
+              valueType: "Constant",
+            }
+          ]
+        })
+      })
+        // Catch errors, log to console
+        .catch((err) => {
+          console.error("Error writing variable: " + eventPayload.variablePath);
+          console.error(err);
+        })
+    },
+
+    // Write int values from number fields
+    async writeInts() {
+      // Perform PUT request to REST API with fetch (async promise)
+      return fetch("/_pxc_api/v1.8/variables", {
+        method: "PUT",
+        // We provide access token in header because it requires auth
+        headers: { "Authorization": "Bearer " + this.accessToken },
+        body: JSON.stringify({
+          pathPrefix: "Arp.Plc.Eclr/",
+          variables: [
+            {
+              path: "iInt1",
+              value: this.iInt1,
+              valueType: "Constant",
+            },
+            {
+              path: "iInt2",
+              value: this.iInt2,
+              valueType: "Constant",
+            },
+            {
+              path: "iInt3",
+              value: this.iInt3,
+              valueType: "Constant",
+            },
+            {
+              path: "iInt4",
+              value: this.iInt4,
+              valueType: "Constant",
+            },
+          ]
+        })
+      })
+        // Catch errors, log to console
+        .catch((err) => {
+          console.error("Error writing int variables");
+          console.error(err);
+        })
+    },
+
+    // Write real values from number fields
+    async writeReals() {
+      // Perform PUT request to REST API with fetch (async promise)
+      return fetch("/_pxc_api/v1.8/variables", {
+        method: "PUT",
+        // We provide access token in header because it requires auth
+        headers: { "Authorization": "Bearer " + this.accessToken },
+        body: JSON.stringify({
+          pathPrefix: "Arp.Plc.Eclr/",
+          variables: [
+            {
+              path: "rReal1",
+              value: this.rReal1,
+              valueType: "Constant",
+            },
+            {
+              path: "rReal2",
+              value: this.rReal2,
+              valueType: "Constant",
+            },
+            {
+              path: "rReal3",
+              value: this.rReal3,
+              valueType: "Constant",
+            },
+            {
+              path: "rReal4",
+              value: this.rReal4,
+              valueType: "Constant",
+            },
+          ]
+        })
+      })
+        // Catch errors, log to console
+        .catch((err) => {
+          console.error("Error writing int variables");
+          console.error(err);
+        })
+    },
+
   }
 
 }
@@ -205,7 +315,7 @@ Vue functions to make it reactive and interact with variables from script -->
     REST API to read/write PLC Variables.
   </p>
 
-  <div>
+  <div class="login-container">
     <h2>Login</h2>
     <p>We need to log in before we can read or write PLC variables</p>
     <div>
@@ -216,12 +326,8 @@ Vue functions to make it reactive and interact with variables from script -->
       <label for="password">Password:</label>
       <input v-model="password" type="password" name="password" id="password">
       <button v-on:click="authenticate()">Log in</button>
-      <p>Access token:
-        <pre>{{ accessToken }}</pre>
-      </p>
-      <p>Variable group ID:
-        <pre>{{ varGroupId }}</pre>
-      </p>
+      <p>Access token: <span class="monospace">{{ accessToken }}</span></p>
+      <p>Variable group ID: <span class="monospace">{{ varGroupId }}</span></p>
     </div>
   </div>
 
@@ -244,15 +350,152 @@ Vue functions to make it reactive and interact with variables from script -->
         <!-- Components are instantiated like a custom HTML element -->
         <!-- v-for is like a foreach loop to render several of a component -->
         <!-- v-bind binds an HTML attribute (or component prop) to a variable
-            from this one -->
-        <ReadTableRow
-          v-for="v in groupVariables"
-          v-bind:var-name="v.path"
-          v-bind:data-type="v.type"
-          v-bind:raw-value="v.value"
-        />
+                    from this one -->
+        <ReadTableRow v-for="v in groupVariables" v-bind:var-name="v.path" v-bind:data-type="v.type"
+          v-bind:raw-value="v.value" />
       </tbody>
     </table>
     <button v-on:click="readGroup()">Update PLC Variables</button>
   </div>
+
+  <div>
+    <h2>Write PLC values</h2>
+    <p>Some example components that write a value to PLC variables</p>
+
+    <div>
+      <h3>Checkboxes for booleans</h3>
+      <p>
+        These are also their own component, to showcase how you could pass
+        values from them
+      </p>
+      <BoolCheckbox v-bind:label="'Bool 1'" v-bind:variable-path="'xBool1'" v-on:chk-change="handleBoolCheckboxChange" />
+      <BoolCheckbox v-bind:label="'Bool 2'" v-bind:variable-path="'xBool2'" v-on:chk-change="handleBoolCheckboxChange" />
+      <BoolCheckbox v-bind:label="'Bool 3'" v-bind:variable-path="'xBool3'" v-on:chk-change="handleBoolCheckboxChange" />
+      <BoolCheckbox v-bind:label="'Bool 4'" v-bind:variable-path="'xBool4'" v-on:chk-change="handleBoolCheckboxChange" />
+    </div>
+
+    <div>
+      <h3>Normal number fields for Ints and Reals</h3>
+
+      <div>
+        <h4>Ints</h4>
+        <div>
+          <label for="intInp1">Int 1: </label>
+          <input v-model="iInt1" type="number" name="intInp1" id="intInp1" min="-32768" max="32767" step="1">
+        </div>
+        <div>
+          <label for="intInp2">Int 2: </label>
+          <input v-model="iInt2" type="number" name="intInp2" id="intInp2" min="-32768" max="32767" step="1">
+        </div>
+        <div>
+          <label for="intInp3">Int 3: </label>
+          <input v-model="iInt3" type="number" name="intInp3" id="intInp3" min="-32768" max="32767" step="1">
+        </div>
+        <div>
+          <label for="intInp4">Int 4: </label>
+          <input v-model="iInt4" type="number" name="intInp4" id="intInp4" min="-32768" max="32767" step="1">
+        </div>
+        <button v-on:click="writeInts">Write Int values</button>
+      </div>
+
+      <div>
+        <h4>Reals</h4>
+        <div>
+          <label for="realInp1">Real 1: </label>
+          <input v-model="rReal1" type="number" name="realInp1" id="realInp1">
+        </div>
+        <div>
+          <label for="realInp2">Real 2: </label>
+          <input v-model="rReal2" type="number" name="realInp2" id="realInp2">
+        </div>
+        <div>
+          <label for="realInp3">Real 3: </label>
+          <input v-model="rReal3" type="number" name="realInp3" id="realInp3">
+        </div>
+        <div>
+          <label for="realInp4">Real 4: </label>
+          <input v-model="rReal4" type="number" name="realInp4" id="realInp4">
+        </div>
+        <button v-on:click="writeReals">Write Real values</button>
+      </div>
+    </div>
+
+  </div>
 </template>
+
+<!-- CSS styles that apply globally -->
+<style>
+/* Reset all styles to box-sizing: border-box */
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Fonts */
+html {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #303030;
+}
+
+/* App width and center */
+#app {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+<!-- Scoped style only applies to this component -->
+<style scoped>
+/* Table styling */
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 4px;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tbody tr:hover {
+  background-color: #e3e3e3;
+}
+
+td {
+  border: 1px solid #cccccc;
+}
+
+
+/* Monospaced spans */
+.monospace {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.9rem;
+  background-color: #cccccc;
+}
+
+/* <p> margins */
+p {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+/* Login area */
+.login-container {
+  padding: 0px 8px 8px 8px;
+  background-color: #b8b8da;
+  border: 1px solid #606060;
+}
+</style>
