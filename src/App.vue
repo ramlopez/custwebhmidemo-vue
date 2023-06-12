@@ -35,6 +35,9 @@ export default {
       ],
       // Array to hold the actual read values from the group variables
       groupVariablesValues: [{ value: true }, { value: 546 }, { value: 87.15 }],
+
+      // Ints
+      iInt1: 0, iInt2: 0, iInt3: 0, iInt4: 0,
     }
   },
 
@@ -212,6 +215,46 @@ export default {
           console.error("Error writing variable: " + eventPayload.variablePath);
           console.error(err);
         })
+    },
+
+    // Write int values from number fields
+    async writeInts() {
+      // Perform PUT request to REST API with fetch (async promise)
+      return fetch("/_pxc_api/v1.8/variables", {
+        method: "PUT",
+        // We provide access token in header because it requires auth
+        headers: { "Authorization": "Bearer " + this.accessToken },
+        body: JSON.stringify({
+          pathPrefix: "Arp.Plc.Eclr/",
+          variables: [
+            {
+              path: "iInt1",
+              value: this.iInt1,
+              valueType: "Constant",
+            },
+            {
+              path: "iInt2",
+              value: this.iInt2,
+              valueType: "Constant",
+            },
+            {
+              path: "iInt3",
+              value: this.iInt3,
+              valueType: "Constant",
+            },
+            {
+              path: "iInt4",
+              value: this.iInt4,
+              valueType: "Constant",
+            },
+          ]
+        })
+      })
+        // Catch errors, log to console
+        .catch((err) => {
+          console.error("Error writing int variables");
+          console.error(err);
+        })
     }
 
   }
@@ -236,7 +279,7 @@ Vue functions to make it reactive and interact with variables from script -->
     <p>We need to log in before we can read or write PLC variables</p>
     <div>
       <!-- v-model makes a two-way binding between these input elements and
-              component variables. It combines v-bind + v-on essentially -->
+                component variables. It combines v-bind + v-on essentially -->
       <label for="username">Username:</label>
       <input v-model="username" type="text" name="username" id="username">
       <label for="password">Password:</label>
@@ -266,27 +309,47 @@ Vue functions to make it reactive and interact with variables from script -->
         <!-- Components are instantiated like a custom HTML element -->
         <!-- v-for is like a foreach loop to render several of a component -->
         <!-- v-bind binds an HTML attribute (or component prop) to a variable
-                from this one -->
+                  from this one -->
         <ReadTableRow v-for="v in groupVariables" v-bind:var-name="v.path" v-bind:data-type="v.type"
           v-bind:raw-value="v.value" />
       </tbody>
     </table>
     <button v-on:click="readGroup()">Update PLC Variables</button>
   </div>
+
   <div>
     <h2>Write PLC values</h2>
     <p>Some example components that write a value to PLC variables</p>
+
     <div>
       <h3>Checkboxes for booleans</h3>
-      <BoolCheckbox v-bind:label="'Bool 1'" v-bind:variable-path="'xBool1'"
-        v-on:chk-change="handleBoolCheckboxChange" />
-      <BoolCheckbox v-bind:label="'Bool 2'" v-bind:variable-path="'xBool2'"
-        v-on:chk-change="handleBoolCheckboxChange" />
-      <BoolCheckbox v-bind:label="'Bool 3'" v-bind:variable-path="'xBool3'"
-        v-on:chk-change="handleBoolCheckboxChange" />
-      <BoolCheckbox v-bind:label="'Bool 4'" v-bind:variable-path="'xBool4'"
-        v-on:chk-change="handleBoolCheckboxChange" />
+      <BoolCheckbox v-bind:label="'Bool 1'" v-bind:variable-path="'xBool1'" v-on:chk-change="handleBoolCheckboxChange" />
+      <BoolCheckbox v-bind:label="'Bool 2'" v-bind:variable-path="'xBool2'" v-on:chk-change="handleBoolCheckboxChange" />
+      <BoolCheckbox v-bind:label="'Bool 3'" v-bind:variable-path="'xBool3'" v-on:chk-change="handleBoolCheckboxChange" />
+      <BoolCheckbox v-bind:label="'Bool 4'" v-bind:variable-path="'xBool4'" v-on:chk-change="handleBoolCheckboxChange" />
     </div>
+
+    <div>
+      <h3>Normal number fields for ints</h3>
+      <div>
+        <label for="intInp1">Int 1: </label>
+        <input v-model="iInt1" type="number" name="intInp1" id="inptInp1">
+      </div>
+      <div>
+        <label for="intInp2">Int 2: </label>
+        <input v-model="iInt2" type="number" name="intInp2" id="inptInp2">
+      </div>
+      <div>
+        <label for="intInp3">Int 3: </label>
+        <input v-model="iInt3" type="number" name="intInp3" id="inptInp3">
+      </div>
+      <div>
+        <label for="intInp4">Int 4: </label>
+        <input v-model="iInt4" type="number" name="intInp4" id="inptInp4">
+      </div>
+      <button v-on:click="writeInts">Write Int values</button>
+    </div>
+
   </div>
 </template>
 
