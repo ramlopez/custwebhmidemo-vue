@@ -26,12 +26,33 @@ export default {
 
       // Variable group ID: we can register a list of variables to read easily
       varGroupId: "",
-      // Array to hold all of the data we should render on the read table
-      readVariables: [
-        { varName: "Placeholder 1", dataType: "BOOL", value: true },
-        { varName: "Placeholder 2", dataType: "INT", value: 8646 },
-        { varName: "Placeholder 3", dataType: "REAL", value: 214.12 },
-      ]
+      // Array to hold path and PLC datatype of registered variables
+      groupVariablesRegistration: [
+        { path: "Placeholder 1", type: "BOOL" },
+        { path: "Placeholder 2", type: "INT" },
+        { path: "Placeholder 3", type: "REAL" },
+      ],
+      // Array to hold the actual read values from the group variables
+      groupVariablesValues: [ {value: true}, {value: 546}, {value: 87.15} ],
+    }
+  },
+
+  // Computed properties, derived values based on data that update automatically
+  // only when necessary. Useful for transforming raw data
+  computed: {
+
+    // Combine groupVariablesRegistration and groupVariablesValues into one
+    // array with their data together
+    groupVariables() {
+      // map() is like a forEach loop, but it calls a function on every element
+      return this.groupVariablesRegistration.map((reg, index) => {
+        console.log(reg);
+        return {
+          path: reg.path,
+          type: reg.type,
+          value: this.groupVariablesValues[index].value,
+        }
+      })
     }
   },
 
@@ -94,8 +115,9 @@ export default {
     async authenticate() {
       return this.reqAuthToken()
         .then((rsp) => { return this.reqAccessToken() })
-        // Also register variable group
-        .then((rsp) => { this.regGroup() })
+        // Also register variable group and read it
+        .then((rsp) => { return this.regGroup() })
+        .then((rsp) => { return this.readGroup() })
     },
 
     // Register variable group (a list of variables we register to read easily
@@ -128,9 +150,10 @@ export default {
       })
         // Turn response body to JSON (also an async promise)
         .then((rsp) => { return rsp.json() })
-        // Take group id value and store it in component data
+        // Take group id and path/datatypes and store those in component data
         .then((data) => {
           this.varGroupId = data.id;
+          this.groupVariablesRegistration = data.variables;
           return this.data;
         })
         // Catch errors, log to console
@@ -154,7 +177,7 @@ export default {
         .then((rsp) => { return rsp.json() })
         // Take read variable data and store in component
         .then((data) => {
-          this.readVariables = data.variables;
+          this.groupVariablesValues = data.variables;
           return this.data;
         })
         // Catch errors, log to console
@@ -223,9 +246,9 @@ Vue functions to make it reactive and interact with variables from script -->
         <!-- v-bind binds an HTML attribute (or component prop) to a variable
             from this one -->
         <ReadTableRow
-          v-for="v in readVariables"
+          v-for="v in groupVariables"
           v-bind:var-name="v.path"
-          v-bind:data-type="v.dataType"
+          v-bind:data-type="v.type"
           v-bind:raw-value="v.value"
         />
       </tbody>
