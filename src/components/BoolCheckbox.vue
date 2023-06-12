@@ -1,4 +1,4 @@
-<!-- This component is a single row in the read-only table for PLC variables -->
+<!-- This component contains a checkbox with a label, for boolean variables -->
 
 <!-- Javascript Vue code for this component -->
 <script>
@@ -39,8 +39,6 @@ export default {
 Vue functions to make it reactive and interact with variables from script -->
 <template>
   <div class="checkbox-container">
-    <!-- v-on="$listeners" is a shorthand for the component to just re-emit the
-      events from this element. -->
     <input v-model="checked" v-on:change="handleChkChange" type="checkbox" name="chk" id="chk">
     <label for="chk">{{ label }}</label>
   </div>
