@@ -204,7 +204,7 @@ Vue functions to make it reactive and interact with variables from script -->
     REST API to read/write PLC Variables.
   </p>
 
-  <div>
+  <div class="login-container">
     <h2>Login</h2>
     <p>We need to log in before we can read or write PLC variables</p>
     <div>
@@ -308,6 +308,19 @@ td {
   font-family: "Courier New", Courier, monospace;
   font-size: 0.9rem;
   background-color: #cccccc;
+}
+
+/* <p> margins */
+p {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+/* Login area */
+.login-container {
+  padding: 0px 8px 8px 8px;
+  background-color: #b8b8da;
+  border: 1px solid #606060;
 }
 
 </style>
