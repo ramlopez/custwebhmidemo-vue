@@ -216,12 +216,8 @@ Vue functions to make it reactive and interact with variables from script -->
       <label for="password">Password:</label>
       <input v-model="password" type="password" name="password" id="password">
       <button v-on:click="authenticate()">Log in</button>
-      <p>Access token:
-        <pre>{{ accessToken }}</pre>
-      </p>
-      <p>Variable group ID:
-        <pre>{{ varGroupId }}</pre>
-      </p>
+      <p>Access token: <span class="monospace">{{ accessToken }}</span></p>
+      <p>Variable group ID: <span class="monospace">{{ varGroupId }}</span></p>
     </div>
   </div>
 
@@ -256,3 +252,63 @@ Vue functions to make it reactive and interact with variables from script -->
     <button v-on:click="readGroup()">Update PLC Variables</button>
   </div>
 </template>
+
+<!-- CSS styles that apply globally -->
+<style>
+
+/* Reset all styles to box-sizing: border-box */
+html {
+  box-sizing: border-box;
+}
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* Fonts */
+html {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #303030;
+}
+
+/* App width and center */
+#app {
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+</style>
+
+<!-- Scoped style only applies to this component -->
+<style scoped>
+
+
+/* Table styling */
+table {
+  border-collapse: collapse;
+}
+th, td {
+  padding: 4px;
+}
+th {
+  background-color: #f2f2f2;
+}
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+tbody tr:hover {
+  background-color: #e3e3e3;
+}
+td {
+  border: 1px solid #cccccc;
+}
+
+
+/* Monospaced spans */
+.monospace {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.9rem;
+  background-color: #cccccc;
+}
+
+</style>
